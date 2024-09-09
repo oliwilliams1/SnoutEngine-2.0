@@ -1,10 +1,28 @@
 #include "world.h"
 
-void world::generateFlatLand()
+void World::CompileShaders()
+{
+
+}
+
+void World::GenerateBuffers()
+{
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(int), vertexData.data(), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(glm::vec3), indices.data(), GL_STATIC_DRAW);
+}
+
+void World::GenerateFlatLand()
 {
 	// Generate vertices
-	for (int i = 0; i < worldSize.x * worldSize.y; i++) {
-		vertexData.push_back(i);
+	for (int y = 0; y < worldSize.y; y++) {
+		for (int x = 0; x < worldSize.x; x++) {
+			vertexData.push_back(glm::vec3(x, 1.0f, y));
+		}
 	}
 
 	// Generate indicies - threory from somewhere online
@@ -21,11 +39,12 @@ void world::generateFlatLand()
     }
 }
 
-world::world(int width, int height)
+World::World(int width, int height)
 {
-	this->worldSize.x = width;
-	this->worldSize.y = height;
-	generateFlatLand();
+	worldSize.x = width;
+	worldSize.y = height;
+	GenerateFlatLand();
+	GenerateBuffers();
 }
 
-world::~world() {}
+World::~World() {}
