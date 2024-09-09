@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include "world.h"
 
 void error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << std::endl;
@@ -26,6 +27,7 @@ GLFWwindow* createWindow(int width, int height, const char* title) {
 }
 
 int main() {
+    world(128, 128);
     GLFWwindow* window = createWindow(800, 600, "OpenGL Window");
     if (!window) return -1;
 
