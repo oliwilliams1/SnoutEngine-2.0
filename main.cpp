@@ -3,12 +3,12 @@
 #include <iostream>
 #include "world.h"
 
-void error_callback(int error, const char* description) {
+void Error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << std::endl;
 }
 
-GLFWwindow* createWindow(int width, int height, const char* title) {
-    glfwSetErrorCallback(error_callback);
+GLFWwindow* CreateWindow(int width, int height, const char* title) {
+    glfwSetErrorCallback(Error_callback);
 
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -27,9 +27,10 @@ GLFWwindow* createWindow(int width, int height, const char* title) {
 }
 
 int main() {
-    GLFWwindow* window = createWindow(800, 600, "OpenGL Window");
+    GLFWwindow* window = CreateWindow(800, 600, "OpenGL Window");
     if (!window) return -1;
 
+    // Initialize GLEW after creating the OpenGL context
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
     if (err != GLEW_OK) {
@@ -39,13 +40,13 @@ int main() {
         return -1;
     }
 
-    World(128, 128);
+    // Create the World instance after GLEW initialization
+    World world(128, 128);
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
-
+        world.Draw();
         glfwSwapBuffers(window);
-
         glfwPollEvents();
     }
 
