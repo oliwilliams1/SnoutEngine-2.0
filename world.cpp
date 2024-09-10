@@ -101,6 +101,7 @@ void World::GenerateBuffers() {
 	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(glm::vec3), vertexData.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glEnableVertexAttribArray(0);
 
 	glGenBuffers(1, &IBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -112,13 +113,13 @@ void World::GenerateFlatLand()
 	// Generate vertices
 	for (int y = 0; y < worldSize.y; y++) {
 		for (int x = 0; x < worldSize.x; x++) {
-			vertexData.push_back(glm::vec3(x, 1.0f, y));
+			vertexData.push_back(glm::vec3(x, y, -1.0f));
 		}
 	}
 
 	// Generate indicies - threory from somewhere online
-    for (int y = 0; y < worldSize.y - 1; y++) {
-        for (int x = 0; x < worldSize.x - 1; x++) 
+	for (int y = 0; y < worldSize.y - 1; y++) {
+		for (int x = 0; x < worldSize.x - 1; x++)
 		{
 			int v1 = y * worldSize.x + x;
 			int v2 = y * worldSize.x + x + 1;
@@ -130,8 +131,8 @@ void World::GenerateFlatLand()
 			indices.push_back(v1);
 			indices.push_back(v4);
 			indices.push_back(v3);
-        }
-    }
+		}
+	}
 }
 
 void World::Draw()
@@ -140,6 +141,8 @@ void World::Draw()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	glDisableVertexAttribArray(0);
 }
