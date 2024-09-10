@@ -85,6 +85,14 @@ void World::CompileShaders() {
     GLchar ErrorLog[1024] = { 0 };
 
     glLinkProgram(ShaderProgram);
+
+	// Uniforms
+	uProjViewLocation = glGetUniformLocation(ShaderProgram, "uProjView");
+	if (uProjViewLocation == -1) {
+		printf("Error getting uniform location of 'uProjView'\n");
+		exit(1);
+	}
+
     glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &Success);
     if (Success == 0) {
         glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
@@ -95,14 +103,18 @@ void World::CompileShaders() {
     glUseProgram(ShaderProgram);
 }
 
-void World::GenerateBuffers() {
+void World::GenerateBuffers() 
+{
+	// Make VBO
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(glm::vec3), vertexData.data(), GL_STATIC_DRAW);
 
+	// Pos of vertex
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 	glEnableVertexAttribArray(0);
 
+	// Make IBO
 	glGenBuffers(1, &IBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
@@ -113,7 +125,7 @@ void World::GenerateFlatLand()
 	// Generate vertices
 	for (int y = 0; y < worldSize.y; y++) {
 		for (int x = 0; x < worldSize.x; x++) {
-			vertexData.push_back(glm::vec3(x, y, -1.0f));
+			vertexData.push_back(glm::vec3(x, 0.0f, y));
 		}
 	}
 
@@ -133,27 +145,44 @@ void World::GenerateFlatLand()
 			indices.push_back(v3);
 		}
 	}
+
+	// Offset verticies so grid is centered
+	for (int i = 0; i < vertexData.size(); i++) {
+		vertexData[i] += glm::vec3(-worldSize.x / 2.0f, 0.0f, -worldSize.y / 2.0f);
+	}
 }
 
 void World::Draw()
 {
+	// Set uniforms
+	glUniformMatrix4fv(uProjViewLocation, 1, GL_FALSE, glm::value_ptr(camera->projView));
+
+	// Buffer stuff
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
+	// Attribs
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
+	// Draw
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	
+	// Clean up
 	glDisableVertexAttribArray(0);
 }
 
-World::World(int width, int height)
+World::World(int width, int height, Camera* camera)
 {
-	worldSize.x = width;
-	worldSize.y = height;
+	// Init variables
+	this->worldSize.x = width;
+	this->worldSize.y = height;
+	this->camera = camera;
+
 	GenerateFlatLand();
 	GenerateBuffers();
 
+	// Compile shaders AFTER generating buffers
 	CompileShaders();
 }
 

@@ -2,13 +2,8 @@
 
 layout(location = 0) in vec3 position;
 
-mat4 isometricProjection = mat4(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    1.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 1.0
-);
+uniform mat4 uProjView;
 
 void main() {
-    gl_Position = isometricProjection * vec4(position, 1.0);
+    gl_Position = uProjView * vec4(position, 1.0);
 }

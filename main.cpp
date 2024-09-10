@@ -1,7 +1,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include "world.h"
+#include "Camera.h"
+#include "World.h"
 
 void Error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << std::endl;
@@ -27,7 +28,7 @@ GLFWwindow* CreateWindow(int width, int height, const char* title) {
 }
 
 int main() {
-    GLFWwindow* window = CreateWindow(800, 600, "OpenGL Window");
+    GLFWwindow* window = CreateWindow(600, 600, "OpenGL Window");
     if (!window) return -1;
 
     // Initialize GLEW after creating the OpenGL context
@@ -40,16 +41,32 @@ int main() {
         return -1;
     }
 
-    // Create the World instance after GLEW initialization
-    World world(128, 128);
+    // Camera object, ortho camera 16x16
+    Camera camera(16.0f, 16.0f);
 
+    // World, 16x16 grid, pass camera for shaders
+    World world(16, 16, &camera);
+
+    // Render as wireframe
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // Render loop
     while (!glfwWindowShouldClose(window)) {
+        // Clear screen
         glClear(GL_COLOR_BUFFER_BIT);
+        
+        // Update camera
+        camera.updateView();
+
+        // Draw world
         world.Draw();
+
+        // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    // Destroy
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
