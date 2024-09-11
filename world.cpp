@@ -1,10 +1,87 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-
 #include "world.h"
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+
+// Generate a gradient from two random numbers, always the same number as psuedo-random
+glm::vec2 World::RandomGradient(int ix, int iy, unsigned int seed) {
+	const unsigned w = 8 * sizeof(unsigned);
+	const unsigned s = w / 2;
+	unsigned a = ix + seed, b = iy + seed; // Make seed acually do something
+	a *= 3284157443;
+
+	b ^= a << s | a >> w - s;
+	b *= 1911520717;
+
+	a ^= b << s | b >> w - s;
+	a *= 2048419325;
+	float random = a * (3.14159265 / ~(~0u >> 1));
+
+	glm::vec2 v;
+	v.x = sin(random);
+	v.y = cos(random);
+
+	return v;
+}
+
+// No idea how this works no matter how much I look at it
+float World::PerlinNoise(glm::vec2 pos) {
+	// Calculate grid cell coordinates
+	int x0 = static_cast<int>(floor(pos.x));
+	int y0 = static_cast<int>(floor(pos.y));
+	int x1 = x0 + 1;
+	int y1 = y0 + 1;
+
+	// Relative x and y in the unit square
+	float sx = pos.x - x0;
+	float sy = pos.y - y0;
+
+	// Fade curve for smoothing
+	float fadeX = sx * sx * sx * (sx * (sx * 6 - 15) + 10);
+	float fadeY = sy * sy * sy * (sy * (sy * 6 - 15) + 10);
+
+	// Hash coordinates to get gradient indices
+	int ix0 = (int)(x0 + y0 * gridSize.x) % gridGradients.size();
+	int ix1 = (int)(x1 + y0 * gridSize.x) % gridGradients.size();
+	int iy0 = (int)(x0 + y1 * gridSize.x) % gridGradients.size();
+	int iy1 = (int)(x1 + y1 * gridSize.x) % gridGradients.size();
+
+	// Dot products from corneres of cell
+	float grad00 = glm::dot(gridGradients[ix0], glm::vec2(sx, sy));
+	float grad10 = glm::dot(gridGradients[ix1], glm::vec2(sx - 1, sy));
+	float grad01 = glm::dot(gridGradients[iy0], glm::vec2(sx, sy - 1));
+	float grad11 = glm::dot(gridGradients[iy1], glm::vec2(sx - 1, sy - 1));
+
+	// Interpolate along x
+	float lerpX0 = grad00 + fadeX * (grad10 - grad00);
+	float lerpX1 = grad01 + fadeX * (grad11 - grad01);
+
+	// Interpolate along y
+	return lerpX0 + fadeY * (lerpX1 - lerpX0);
+}
+
+float World::PerlinNoiseOctaves(glm::vec2 pos) {
+	float total = 0.0f;
+	float frequency = 1.0f;
+	float amplitude = 1.0f;
+	float maxValue = 0.0f;
+
+	for (int i = 0; i < 6; i++) {
+		total += PerlinNoise(pos * frequency) * amplitude;
+		maxValue += amplitude;
+
+		amplitude *= 0.5f;
+		frequency *= 2.0f;
+	}
+
+	return total / maxValue;
+}
+
+// Populate the gridGradients vector for later use
+void World::GenerateGradients(unsigned int seed) {
+	for (int y = 0; y < gridSize.y; y++) {
+		for (int x = 0; x < gridSize.x; x++) {
+			gridGradients.push_back(RandomGradient(x, y, seed));
+		}
+	}
+}
 
 void World::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
 {
@@ -125,7 +202,7 @@ void World::GenerateFlatLand()
 	// Generate vertices
 	for (int y = 0; y < worldSize.y; y++) {
 		for (int x = 0; x < worldSize.x; x++) {
-			vertexData.push_back(glm::vec3(x, 0.0f, y));
+			vertexData.push_back(glm::vec3(x, PerlinNoiseOctaves(glm::vec2((float)x / gridSize.x, (float)y / gridSize.y)), y));
 		}
 	}
 
@@ -172,12 +249,15 @@ void World::Draw()
 	glDisableVertexAttribArray(0);
 }
 
-World::World(int width, int height, Camera* camera)
+World::World(int width, int height, Camera* camera, unsigned int seed)
 {
 	// Init variables
 	this->worldSize.x = width;
 	this->worldSize.y = height;
 	this->camera = camera;
+
+	gridSize = glm::vec2(int(width / 3), (int (height / 3)));
+	GenerateGradients(seed);
 
 	GenerateFlatLand();
 	GenerateBuffers();
