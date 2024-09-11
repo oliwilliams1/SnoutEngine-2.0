@@ -61,7 +61,7 @@ int main() {
     glfwSetKeyCallback(window, KeyCallback);
 
     // Render as wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 
     // Render loop
