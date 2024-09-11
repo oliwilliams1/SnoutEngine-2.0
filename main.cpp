@@ -55,7 +55,7 @@ int main() {
     Camera camera(window, &deltaTime, 16.0f, 16.0f);
 
     // World, 16x16 grid, pass camera for shaders
-    World world(16, 16, &camera, 2135);
+    World world(16, 16, &camera);
 
     // Escape key closes window
     glfwSetKeyCallback(window, KeyCallback);
