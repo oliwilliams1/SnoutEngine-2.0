@@ -20,6 +20,18 @@ void Camera::update() {
 		position.x -= *deltaTime * speed;
 		position.z += *deltaTime * speed;
 	}
+
+	if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS) {
+		cameraData.width  += *deltaTime * speed;
+		cameraData.height += *deltaTime * speed;
+		updateProj();
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS) {
+		cameraData.width  -= *deltaTime * speed;
+		cameraData.height -= *deltaTime * speed;
+		updateProj();
+	}
 	target = position + viewDir;
 
 	view = glm::lookAt(position, target, up);

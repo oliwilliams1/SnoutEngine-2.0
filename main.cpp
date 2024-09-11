@@ -52,10 +52,10 @@ int main() {
     double deltaTime;
 
     // Camera object, ortho camera 16x16
-    Camera camera(window, &deltaTime, 16.0f, 16.0f);
+    Camera camera(window, &deltaTime, 24.0f, 24.0f);
 
     // World, 16x16 grid, pass camera for shaders
-    World world(16, 16, &camera, 2135);
+    World world(32, 32, &camera, 420);
 
     // Escape key closes window
     glfwSetKeyCallback(window, KeyCallback);

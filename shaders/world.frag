@@ -11,7 +11,7 @@ void main()
     vec4 green = vec4(1.0, 1.0, 1.0, 1.0);
     vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
 
-    if (height < -1.0) {
+    if (height < -0.5) {
         fragColor = blue;
     } else if (height < 0.0) {
         float t = (height + 1.0) / 1.0;

@@ -249,6 +249,10 @@ void World::Draw()
 	glDisableVertexAttribArray(0);
 }
 
+float max(float x, float y) {
+	return (x > y) ? x : y;
+}
+
 World::World(int width, int height, Camera* camera, unsigned int seed)
 {
 	// Init variables
@@ -256,7 +260,9 @@ World::World(int width, int height, Camera* camera, unsigned int seed)
 	this->worldSize.y = height;
 	this->camera = camera;
 
-	gridSize = glm::vec2(int(width / 3), (int (height / 3)));
+	
+	int maxSize = max(width, height);
+	gridSize = glm::vec2(maxSize, maxSize);
 	GenerateGradients(seed);
 
 	GenerateFlatLand();
