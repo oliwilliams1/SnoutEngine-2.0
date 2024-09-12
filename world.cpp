@@ -71,7 +71,7 @@ float World::PerlinNoiseOctaves(glm::vec2 pos) {
 		frequency *= 2.0f;
 	}
 
-	return total / maxValue;
+	return (total / maxValue) * 5.0f;
 }
 
 // Populate the gridGradients vector for later use
@@ -180,53 +180,77 @@ void World::CompileShaders() {
     glUseProgram(ShaderProgram);
 }
 
-void World::GenerateBuffers() 
+void World::GenerateBuffers()
 {
-	// Make VBO
+	// Make VBO for vertex positions
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(glm::vec3), vertexData.data(), GL_STATIC_DRAW);
-
-	// Pos of vertex
+	glBufferData(GL_ARRAY_BUFFER, vertexPositions.size() * sizeof(glm::vec3), vertexPositions.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 	glEnableVertexAttribArray(0);
 
-	// Make IBO
-	glGenBuffers(1, &IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+	// Make VBO for face normals
+	GLuint normalVBO;
+	glGenBuffers(1, &normalVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
+	glBufferData(GL_ARRAY_BUFFER, vertexNormals.size() * sizeof(glm::vec3), vertexNormals.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glEnableVertexAttribArray(1);
 }
 
 void World::GenerateFlatLand()
 {
-	// Generate vertices
+	// Ensure a clear incase multi-generation
+	vertexPositions.clear();
+	vertexNormals.clear();
+
+	// Generate vertices and normals
 	for (int y = 0; y < worldSize.y; y++) {
 		for (int x = 0; x < worldSize.x; x++) {
-			vertexData.push_back(glm::vec3(x, PerlinNoiseOctaves(glm::vec2((float)x / gridSize.x, (float)y / gridSize.y)), y));
+			glm::vec2 v1(x, y);
+			glm::vec2 v2(x + 1, y);
+			glm::vec2 v3(x, y + 1);
+
+			glm::vec3 v1_3d(v1.x, PerlinNoiseOctaves(v1 / gridSize), v1.y);
+			glm::vec3 v2_3d(v2.x, PerlinNoiseOctaves(v2 / gridSize), v2.y);
+			glm::vec3 v3_3d(v3.x, PerlinNoiseOctaves(v3 / gridSize), v3.y);
+
+			glm::vec3 f1Normal = -glm::normalize(glm::cross(v2_3d - v1_3d, v3_3d - v1_3d));
+
+			// Add vertex data for 1st tri
+			vertexPositions.push_back(v1_3d);
+			vertexPositions.push_back(v2_3d);
+			vertexPositions.push_back(v3_3d);
+
+			vertexNormals.push_back(f1Normal);
+			vertexNormals.push_back(f1Normal);
+			vertexNormals.push_back(f1Normal);
+
+			glm::vec2 v4(x + 1, y);
+			glm::vec2 v5(x + 1, y + 1);
+			glm::vec2 v6(x, y + 1);
+
+			glm::vec3 v4_3d(v4.x, PerlinNoiseOctaves(v4 / gridSize), v4.y);
+			glm::vec3 v5_3d(v5.x, PerlinNoiseOctaves(v5 / gridSize), v5.y);
+			glm::vec3 v6_3d(v6.x, PerlinNoiseOctaves(v6 / gridSize), v6.y);
+
+			glm::vec3 f2Normal = -glm::normalize(glm::cross(v5_3d - v4_3d, v6_3d - v4_3d));
+
+			// Add vertex data for 2nd tri
+			vertexPositions.push_back(v4_3d);
+			vertexPositions.push_back(v5_3d);
+			vertexPositions.push_back(v6_3d);
+
+			vertexNormals.push_back(f2Normal);
+			vertexNormals.push_back(f2Normal);
+			vertexNormals.push_back(f2Normal);
 		}
 	}
 
-	// Generate indicies - threory from somewhere online
-	for (int y = 0; y < worldSize.y - 1; y++) {
-		for (int x = 0; x < worldSize.x - 1; x++)
-		{
-			int v1 = y * worldSize.x + x;
-			int v2 = y * worldSize.x + x + 1;
-			int v3 = (y + 1) * worldSize.x + x;
-			int v4 = (y + 1) * worldSize.x + x + 1;
-			indices.push_back(v1);
-			indices.push_back(v2);
-			indices.push_back(v4);
-			indices.push_back(v1);
-			indices.push_back(v4);
-			indices.push_back(v3);
-		}
-	}
-
-	// Offset verticies so grid is centered
-	for (int i = 0; i < vertexData.size(); i++) {
-		vertexData[i] += glm::vec3(-worldSize.x / 2.0f, 0.0f, -worldSize.y / 2.0f);
-	}
+	// Offset vertices so grid is centered
+	for (int i = 0; i < vertexPositions.size(); i++) {
+		vertexPositions[i] += glm::vec3(-worldSize.x / 2.0f, 0.0f, -worldSize.y / 2.0f);
+	}	
 }
 
 void World::Draw()
@@ -234,23 +258,18 @@ void World::Draw()
 	// Set uniforms
 	glUniformMatrix4fv(uProjViewLocation, 1, GL_FALSE, glm::value_ptr(camera->projView));
 
-	// Buffer stuff
+	// Bind buffer
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
 	// Attribs
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	// Draw
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-	
+	// Draw using glDrawArrays
+	glDrawArrays(GL_TRIANGLES, 0, vertexPositions.size());
+
 	// Clean up
 	glDisableVertexAttribArray(0);
-}
-
-float max(float x, float y) {
-	return (x > y) ? x : y;
 }
 
 World::World(int width, int height, Camera* camera, unsigned int seed)
@@ -261,7 +280,7 @@ World::World(int width, int height, Camera* camera, unsigned int seed)
 	this->camera = camera;
 
 	
-	int maxSize = max(width, height);
+	int maxSize = (height > width) ? height : width;
 	gridSize = glm::vec2(maxSize, maxSize);
 	GenerateGradients(seed);
 

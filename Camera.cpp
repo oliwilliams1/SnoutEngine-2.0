@@ -1,5 +1,16 @@
 #include "Camera.h"
 
+void Camera::updateProj() {
+	proj = glm::ortho(
+		-cameraData.width,
+		cameraData.width,
+		-cameraData.height,
+		cameraData.height,
+		cameraData.near,
+		cameraData.far
+	);
+}
+
 void Camera::update() {
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		position.x -= *deltaTime * speed;
@@ -37,3 +48,13 @@ void Camera::update() {
 	view = glm::lookAt(position, target, up);
 	projView = proj * view;
 }
+
+Camera::Camera(GLFWwindow* window, double* deltaTime, float width, float height, float near, float far) {
+	this->window = window;
+	this->deltaTime = deltaTime;
+	cameraData = { width, height, near, far };
+	updateProj();
+	update();
+}
+
+Camera::~Camera() {};

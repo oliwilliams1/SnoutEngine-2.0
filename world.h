@@ -14,10 +14,11 @@ private:
     void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType);
     bool ReadFile(const char* pFileName, std::string& outFile);
 
-    GLuint VBO = 0, IBO = 0;
+    GLuint VBO = 0, IBO = 0, normalVBO = 0;
     GLuint uProjViewLocation;
-    std::vector<glm::vec3> vertexData;
-    std::vector<GLuint> indices;
+    std::vector<glm::vec3> vertexPositions;
+    std::vector<glm::vec3> vertexNormals;
+
     glm::ivec2 worldSize;
     const char* pVSFileName = "shaders/world.vert";
     const char* pFSFileName = "shaders/world.frag";
