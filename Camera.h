@@ -12,8 +12,9 @@ class Camera {
 private:
     GLFWwindow* window;
     double* deltaTime;
-    float speed = 5.0f;
+    float speed = 10.0f;
     CameraData cameraData;
+    CameraData initCameraData;
 
     glm::vec3 position = glm::vec3(5.0f, 3.0f, 5.0f);
     glm::vec3 viewDir = glm::vec3(-1.0f, -0.6f, -1.0f);
@@ -24,6 +25,8 @@ private:
     glm::mat4 proj;
 
     void updateProj();
+
+    void adjustCameraSize(float delta, bool increase);
 
 public:
     glm::mat4 projView;

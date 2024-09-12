@@ -11,7 +11,27 @@ void Camera::updateProj() {
 	);
 }
 
+void Camera::adjustCameraSize(float delta, bool increase) {
+	float adjustment = increase ? delta * cameraData.width : -delta * cameraData.width;
+
+	cameraData.width += adjustment;
+	cameraData.height += adjustment;
+
+	// Ensure width and height do not exceed initial limits or fall below minimum
+	cameraData.width = glm::clamp(cameraData.width, 10.0f, initCameraData.width);
+	cameraData.height = glm::clamp(cameraData.height, 10.0f, initCameraData.height);
+
+	updateProj();
+}
+
 void Camera::update() {
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS) {
+		speed = 10.0f;
+	}
+	else {
+		speed = 20.0f;
+	}
+
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		position.x -= *deltaTime * speed;
 		position.z -= *deltaTime * speed;
@@ -33,16 +53,13 @@ void Camera::update() {
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS) {
-		cameraData.width  += *deltaTime * speed;
-		cameraData.height += *deltaTime * speed;
-		updateProj();
+		adjustCameraSize(*deltaTime, true);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS) {
-		cameraData.width  -= *deltaTime * speed;
-		cameraData.height -= *deltaTime * speed;
-		updateProj();
+		adjustCameraSize(*deltaTime, false);
 	}
+
 	target = position + viewDir;
 
 	view = glm::lookAt(position, target, up);
@@ -52,7 +69,8 @@ void Camera::update() {
 Camera::Camera(GLFWwindow* window, double* deltaTime, float width, float height, float near, float far) {
 	this->window = window;
 	this->deltaTime = deltaTime;
-	cameraData = { width, height, near, far };
+	this->cameraData = { width, height, near, far };
+	this->initCameraData = this->cameraData;
 	updateProj();
 	update();
 }

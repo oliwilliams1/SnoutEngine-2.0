@@ -14,12 +14,12 @@ vec4 linearInterpolate(vec4 y0, vec4 y1, float mu) {
 
 vec4 getTerrainColor(float value) {
     // Define key colors
-    vec4 color1 = vec4(0.0, 0.0, 1.0, 1.0); // Deep water (blue)
-    vec4 color2 = vec4(0.0, 0.5, 1.0, 1.0); // Shallow water (light blue)
-    vec4 color3 = vec4(0.5, 1.0, 0.5, 1.0); // Grass (green)
-    vec4 color4 = vec4(1.0, 1.0, 0.0, 1.0); // Sand (yellow)
-    vec4 color5 = vec4(1.0, 0.5, 0.0, 1.0); // Mountain (orange)
-    vec4 color6 = vec4(1.0, 1.0, 1.0, 1.0); // Snow (white)
+    vec4 color1 = vec4(0.0, 0.0, 1.0, 1.0); // dark blue
+    vec4 color2 = vec4(0.0, 0.5, 1.0, 1.0); // light blue
+    vec4 color3 = vec4(0.5, 1.0, 0.5, 1.0); // green
+    vec4 color4 = vec4(1.0, 1.0, 0.0, 1.0); // brown
+    vec4 color5 = vec4(1.0, 1.0, 1.0, 1.0); // white
+    vec4 color6 = vec4(1.0, 1.0, 1.0, 1.0); // white again
 
     float mu;
 
