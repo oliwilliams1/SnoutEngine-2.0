@@ -14,7 +14,8 @@ private:
     void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType);
     bool ReadFile(const char* pFileName, std::string& outFile);
 
-    GLuint VBO = 0, IBO = 0, normalVBO = 0;
+    GLuint VBO, normalVBO;
+    GLuint ShaderProgram;
     GLuint uProjViewLocation;
     std::vector<glm::vec3> vertexPositions;
     std::vector<glm::vec3> vertexNormals;
@@ -35,8 +36,9 @@ public:
     ~World();
     void CompileShaders();
     void GenerateBuffers();
-    void GenerateFlatLand();
+    void GenerateLand();
     void Draw();
     glm::vec2 RandomGradient(int ix, int iy, unsigned int seed);
     void GenerateGradients(unsigned int seed);
+    void ChangeTerrainSeed(unsigned int seed);
 };

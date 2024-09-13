@@ -71,11 +71,12 @@ float World::PerlinNoiseOctaves(glm::vec2 pos) {
 		frequency *= 2.0f;
 	}
 
-	return (total / maxValue) * 5.0f;
+	return round((total / maxValue) * 7.5f) / 4.5f;
 }
 
 // Populate the gridGradients vector for later use
 void World::GenerateGradients(unsigned int seed) {
+	gridGradients.clear();
 	for (int y = 0; y < gridSize.y; y++) {
 		for (int x = 0; x < gridSize.x; x++) {
 			gridGradients.push_back(RandomGradient(x, y, seed));
@@ -140,7 +141,7 @@ bool World::ReadFile(const char* pFileName, std::string& outFile)
 }
 
 void World::CompileShaders() {
-    GLuint ShaderProgram = glCreateProgram();
+	ShaderProgram = glCreateProgram();
     if (ShaderProgram == 0) {
         fprintf(stderr, "Error creating shader program\n");
         exit(1);
@@ -185,7 +186,7 @@ void World::GenerateBuffers()
 	// Make VBO for vertex positions
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexPositions.size() * sizeof(glm::vec3), vertexPositions.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertexPositions.size() * sizeof(glm::vec3), vertexPositions.data(), GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 	glEnableVertexAttribArray(0);
 
@@ -193,13 +194,13 @@ void World::GenerateBuffers()
 	GLuint normalVBO;
 	glGenBuffers(1, &normalVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexNormals.size() * sizeof(glm::vec3), vertexNormals.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertexNormals.size() * sizeof(glm::vec3), vertexNormals.data(), GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 	glEnableVertexAttribArray(1);
 }
 
-void World::GenerateFlatLand()
-{
+// Generates land based off of grid gradients
+void World::GenerateLand() {
 	// Ensure a clear incase multi-generation
 	vertexPositions.clear();
 	vertexNormals.clear();
@@ -253,8 +254,8 @@ void World::GenerateFlatLand()
 	}	
 }
 
-void World::Draw()
-{
+// Main draw function, calls the shader and draws the world
+void World::Draw() {
 	// Set uniforms
 	glUniformMatrix4fv(uProjViewLocation, 1, GL_FALSE, glm::value_ptr(camera->projView));
 
@@ -272,8 +273,14 @@ void World::Draw()
 	glDisableVertexAttribArray(0);
 }
 
-World::World(int width, int height, Camera* camera, unsigned int seed)
-{
+// Change terrain seed, update buffers
+void World::ChangeTerrainSeed(unsigned int seed) {
+	GenerateGradients(seed);
+	GenerateLand();
+	GenerateBuffers();
+}
+
+World::World(int width, int height, Camera* camera, unsigned int seed) {
 	// Init variables
 	this->worldSize.x = width;
 	this->worldSize.y = height;
@@ -284,11 +291,16 @@ World::World(int width, int height, Camera* camera, unsigned int seed)
 	gridSize = glm::vec2(maxSize, maxSize);
 	GenerateGradients(seed);
 
-	GenerateFlatLand();
+	GenerateLand();
 	GenerateBuffers();
 
 	// Compile shaders AFTER generating buffers
 	CompileShaders();
 }
 
-World::~World() {}
+// Prepare the world for a mass-bombing
+World::~World() {
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &normalVBO);
+	glDeleteProgram(ShaderProgram);
+}
