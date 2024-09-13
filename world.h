@@ -8,12 +8,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "Camera.h"
+#include "utils.h"
 
 class World {
 private:
-    void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType);
-    bool ReadFile(const char* pFileName, std::string& outFile);
-
     GLuint VBO, normalVBO;
     GLuint ShaderProgram;
     GLuint uProjViewLocation;
@@ -31,14 +29,16 @@ private:
 
     Camera* camera;
 
-public:
-    World(int width, int height, Camera* camera, unsigned int seed);
-    ~World();
     void CompileShaders();
     void GenerateBuffers();
     void GenerateLand();
-    void Draw();
+
     glm::vec2 RandomGradient(int ix, int iy, unsigned int seed);
     void GenerateGradients(unsigned int seed);
+
+public:
+    World(int width, int height, Camera* camera, unsigned int seed);
+    ~World();
+    void Draw();
     void ChangeTerrainSeed(unsigned int seed);
 };

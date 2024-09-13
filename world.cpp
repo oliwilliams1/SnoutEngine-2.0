@@ -84,62 +84,6 @@ void World::GenerateGradients(unsigned int seed) {
 	}
 }
 
-void World::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
-{
-	GLuint ShaderObj = glCreateShader(ShaderType);
-
-	if (ShaderObj == 0) {
-		fprintf(stderr, "Error creating shader type %d\n", ShaderType);
-		exit(1);
-	}
-
-	const GLchar* p[1];
-	p[0] = pShaderText;
-
-	GLint Lengths[1];
-	Lengths[0] = (GLint)strlen(pShaderText);
-
-	glShaderSource(ShaderObj, 1, p, Lengths);
-
-	glCompileShader(ShaderObj);
-
-	GLint success;
-	glGetShaderiv(ShaderObj, GL_COMPILE_STATUS, &success);
-
-	if (!success) {
-		GLchar InfoLog[1024];
-		glGetShaderInfoLog(ShaderObj, 1024, NULL, InfoLog);
-		fprintf(stderr, "Error compiling shader type %d: '%s'\n", ShaderType, InfoLog);
-		exit(1);
-	}
-
-	glAttachShader(ShaderProgram, ShaderObj);
-}
-
-bool World::ReadFile(const char* pFileName, std::string& outFile)
-{
-	std::ifstream f(pFileName);
-
-	bool ret = false;
-
-	if (f.is_open()) {
-		std::string line;
-		while (std::getline(f, line)) {
-			outFile.append(line);
-			outFile.append("\n");
-		}
-
-		f.close();
-
-		ret = true;
-	}
-	else {
-		std::cout << "Unable to open file: " << pFileName << std::endl;
-	}
-
-	return ret;
-}
-
 void World::CompileShaders() {
 	ShaderProgram = glCreateProgram();
     if (ShaderProgram == 0) {
@@ -256,6 +200,9 @@ void World::GenerateLand() {
 
 // Main draw function, calls the shader and draws the world
 void World::Draw() {
+	// Use shader program
+	glUseProgram(ShaderProgram);
+
 	// Set uniforms
 	glUniformMatrix4fv(uProjViewLocation, 1, GL_FALSE, glm::value_ptr(camera->projView));
 
@@ -285,7 +232,6 @@ World::World(int width, int height, Camera* camera, unsigned int seed) {
 	this->worldSize.x = width;
 	this->worldSize.y = height;
 	this->camera = camera;
-
 	
 	int maxSize = (height > width) ? height : width;
 	gridSize = glm::vec2(maxSize, maxSize);
