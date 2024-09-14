@@ -32,6 +32,12 @@ void Sphere::CompileShaders()
         exit(1);
     }
 
+    uPositionOffsetLocation = glGetUniformLocation(ShaderProgram, "uPositionOffset");
+    if (uPositionOffsetLocation == -1) {
+        printf("Error getting uniform location of 'uPositionOffset'\n");
+        exit(1);
+    }
+
     glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &Success);
     if (Success == 0) {
         glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
@@ -106,6 +112,8 @@ void Sphere::Draw() {
 
     // Set uniforms
     glUniformMatrix4fv(uProjViewLocation, 1, GL_FALSE, glm::value_ptr(camera->projView));
+    position = glm::vec3(*spherePos);
+    glUniform3f(uPositionOffsetLocation, position.x, position.y, position.z);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -119,9 +127,10 @@ void Sphere::Draw() {
     glDisableVertexAttribArray(0);
 }
 
-Sphere::Sphere(Camera* camera)
+Sphere::Sphere(Camera* camera, glm::vec3* spherePos)
 {
     this->camera = camera;
+    this->spherePos = spherePos;
 
     GenerateSphere();
     GenerateBuffers();

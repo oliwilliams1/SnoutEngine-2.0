@@ -61,14 +61,16 @@ int main() {
     double lastTime = glfwGetTime();
     double deltaTime;
 
+    glm::vec3 spherePos = glm::vec3(0.0f, 0.0f, 0.0f);
+
     // Camera object, ortho camera 16x16
-    Camera camera(window, &deltaTime, 24.0f, 24.0f);
+    Camera camera(window, &deltaTime, 24.0f, 24.0f, -1000.0f, 1000.0f, &spherePos);
 
     int seed = 1;
 
     // World, 16x16 grid, pass camera for shaders
     World world(32, 32, &camera, seed);
-    Sphere sphere(&camera);
+    Sphere sphere(&camera, &spherePos);
 
     // Escape key closes window
     glfwSetKeyCallback(window, KeyCallback);
