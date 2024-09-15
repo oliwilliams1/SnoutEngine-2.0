@@ -57,9 +57,9 @@ void Camera::calculateMousePress() {
 	glm::vec2 point;
 	point.x = ray.pos.x + t * ray.direction.x;
 	point.y = ray.pos.z + t * ray.direction.z;
-	std::cout << point.x << " " << point.y << std::endl;
 	spherePos->x = point.x;
 	spherePos->z = point.y;
+	std::cout << RayIntersectAABB(ray, *worldAABB) << std::endl;
 }
 
 void Camera::update() {

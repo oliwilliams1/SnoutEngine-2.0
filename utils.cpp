@@ -1,5 +1,20 @@
 #include "utils.h"
 
+bool RayIntersectAABB(Ray ray, AABB aabb)
+{
+    glm::vec3 invDir = 1.0f / ray.direction;
+    glm::vec3 t0 = (aabb.min - ray.pos) * invDir;
+    glm::vec3 t1 = (aabb.max - ray.pos) * invDir;
+
+    glm::vec3 tMin = glm::min(t0, t1);
+    glm::vec3 tMax = glm::max(t0, t1);
+
+    float tNear = glm::max(tMin.x, glm::max(tMin.y, tMin.z));
+    float tFar = glm::min(tMax.x, glm::min(tMax.y, tMax.z));
+
+    return tNear <= tFar && tFar >= 0;
+}
+
 bool ReadFile(const char* pFileName, std::string& outFile) {
     std::ifstream f(pFileName);
 

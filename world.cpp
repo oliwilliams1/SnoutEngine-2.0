@@ -195,7 +195,16 @@ void World::GenerateLand() {
 	// Offset vertices so grid is centered
 	for (int i = 0; i < vertexPositions.size(); i++) {
 		vertexPositions[i] += glm::vec3(-worldSize.x / 2.0f, 0.0f, -worldSize.y / 2.0f);
-	}	
+	}
+	
+	// Calculate AABB
+	glm::vec3 min(0.0f);
+	glm::vec3 max(0.0f);
+	for (int i = 0; i < vertexPositions.size(); i++) {
+		min = glm::min(min, vertexPositions[i]);
+		max = glm::max(max, vertexPositions[i]);
+	}
+	this->aabb = { min, max };
 }
 
 // Main draw function, calls the shader and draws the world

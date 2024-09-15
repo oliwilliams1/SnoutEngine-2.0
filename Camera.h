@@ -4,15 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-struct CameraData {
-    float width, height, near, far;
-};
-
-struct Ray {
-    glm::vec3 pos;
-    glm::vec3 direction;
-};
+#include "utils.h"
 
 class Camera {
 private:
@@ -38,6 +30,7 @@ private:
     void calculateMousePress();
 
 public:
+    AABB* worldAABB;
     glm::mat4 projView;
     glm::vec3* spherePos;
     Camera(GLFWwindow* window, double* deltaTime, float width, float height, float near = -1000.0f, float far = 1000.0f, glm::vec3* spherePos = nullptr);

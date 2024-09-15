@@ -72,6 +72,8 @@ int main() {
     World world(32, 32, &camera, seed);
     Sphere sphere(&camera, &spherePos);
 
+    camera.worldAABB = &world.aabb;
+
     // Escape key closes window
     glfwSetKeyCallback(window, KeyCallback);
 

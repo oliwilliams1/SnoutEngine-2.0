@@ -37,6 +37,7 @@ private:
     void GenerateGradients(unsigned int seed);
 
 public:
+    AABB aabb;
     World(int width, int height, Camera* camera, unsigned int seed);
     ~World();
     void Draw();
