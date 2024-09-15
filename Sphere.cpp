@@ -112,7 +112,6 @@ void Sphere::Draw() {
 
     // Set uniforms
     glUniformMatrix4fv(uProjViewLocation, 1, GL_FALSE, glm::value_ptr(camera->projView));
-    position = glm::vec3(*spherePos);
     glUniform3f(uPositionOffsetLocation, position.x, position.y, position.z);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -127,10 +126,9 @@ void Sphere::Draw() {
     glDisableVertexAttribArray(0);
 }
 
-Sphere::Sphere(Camera* camera, glm::vec3* spherePos)
+Sphere::Sphere(Camera* camera)
 {
     this->camera = camera;
-    this->spherePos = spherePos;
 
     GenerateSphere();
     GenerateBuffers();

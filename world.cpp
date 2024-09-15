@@ -207,8 +207,71 @@ void World::GenerateLand() {
 	this->aabb = { min, max };
 }
 
+void World::CalculateMousePress()
+{
+	Ray ray;
+
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+
+	// Normalize mouse position to NDC
+	float ndcX = (2.0f * xpos) / width - 1.0f; // Normalize to [-1, 1]
+	float ndcY = 1.0f - (2.0f * ypos) / height; // Normalize to [1, -1]
+
+	glm::vec3 up = glm::normalize(camera->viewDir);
+	glm::vec3 right = glm::normalize(glm::cross(up, camera->up));
+	if (glm::length(right) < 0.0001f) {
+		right = glm::normalize(glm::cross(up, glm::vec3(1.0f, 0.0f, 0.0f)));
+	}
+	glm::vec3 forward = glm::cross(up, right);
+
+	glm::vec2 offsets;
+	offsets.x =  ndcX * camera->cameraData.width;
+	offsets.y = -ndcY * camera->cameraData.height;
+
+	// Position on the plane
+	ray.pos = camera->position + right * offsets.x + forward * offsets.y;
+	ray.direction = camera->viewDir;
+
+	float t = -ray.pos.y / ray.direction.y;
+
+	glm::vec2 point;
+	point.x = ray.pos.x + t * ray.direction.x;
+	point.y = ray.pos.z + t * ray.direction.z;
+	sphere->position.x = point.x;
+	sphere->position.z = point.y;
+
+	// Get [-0.5, 0.5]
+	glm::vec2 posNDC = point / glm::vec2(worldSize.x, worldSize.y);
+	posNDC += 0.5f;
+	posNDC *= worldSize;
+	std::cout << posNDC.x << ", " << posNDC.y << std::endl;
+}
+
+// Update the world, if needed
+void World::Update() {
+	switch (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
+	case GLFW_PRESS:
+		mouseDown = true;
+		break;
+
+	case GLFW_RELEASE:
+		if (mouseDown) {
+			CalculateMousePress();
+		}
+		mouseDown = false;
+		break;
+	}
+}
+
 // Main draw function, calls the shader and draws the world
 void World::Draw() {
+	// Update the world, if needed
+	Update();
+
 	// Use shader program
 	glUseProgram(ShaderProgram);
 
@@ -227,6 +290,9 @@ void World::Draw() {
 
 	// Clean up
 	glDisableVertexAttribArray(0);
+
+	// Render sphere
+	sphere->Draw();
 }
 
 // Change terrain seed, update buffers
@@ -236,11 +302,12 @@ void World::ChangeTerrainSeed(unsigned int seed) {
 	GenerateBuffers();
 }
 
-World::World(int width, int height, Camera* camera, unsigned int seed) {
+World::World(int width, int height, GLFWwindow* window, Camera* camera, unsigned int seed) {
 	// Init variables
 	this->worldSize.x = width;
 	this->worldSize.y = height;
 	this->camera = camera;
+	this->window = window;
 	
 	int maxSize = (height > width) ? height : width;
 	gridSize = glm::vec2(maxSize, maxSize);
@@ -251,6 +318,8 @@ World::World(int width, int height, Camera* camera, unsigned int seed) {
 
 	// Compile shaders AFTER generating buffers
 	CompileShaders();
+
+	sphere = new Sphere(camera);
 }
 
 // Prepare the world for a mass-bombing

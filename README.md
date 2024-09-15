@@ -12,5 +12,6 @@ I use MSVC and vcpkg. Run these commands to install the required packages:
 vcpkg install glfw3
 vcpkg install glm
 vcpkg install opengl
+vcpgk install glew
 vcpkg install imgui[core,glfw-binding,opengl3-binding]
 ```

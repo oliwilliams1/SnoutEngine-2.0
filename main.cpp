@@ -7,7 +7,6 @@
 #include <iostream>
 #include "Camera.h"
 #include "World.h"
-#include "Sphere.h"
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -61,16 +60,13 @@ int main() {
     double lastTime = glfwGetTime();
     double deltaTime;
 
-    glm::vec3 spherePos = glm::vec3(0.0f, 0.0f, 0.0f);
-
     // Camera object, ortho camera 16x16
-    Camera camera(window, &deltaTime, 24.0f, 24.0f, -1000.0f, 1000.0f, &spherePos);
+    Camera camera(window, &deltaTime, 24.0f, 24.0f, -1000.0f, 1000.0f);
 
     int seed = 1;
 
     // World, 16x16 grid, pass camera for shaders
-    World world(32, 32, &camera, seed);
-    Sphere sphere(&camera, &spherePos);
+    World world(32, 32, window, &camera, seed);
 
     camera.worldAABB = &world.aabb;
 
@@ -103,11 +99,10 @@ int main() {
         ImGui::NewFrame();
 
         // Update camera
-        camera.update();
+        camera.Update();
 
         // Draw everything
         world.Draw();
-        sphere.Draw();
 
         ImGui::Begin("Seed changer");
         ImGui::DragInt("Seed", &seed);

@@ -30,11 +30,9 @@ private:
 	void GenerateBuffers();
 	void GenerateSphere();
 
-	glm::vec3* spherePos;
-
 public:
 	glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
 	void Draw();
-	Sphere(Camera* camera, glm::vec3* spherePos);
+	Sphere(Camera* camera);
 	~Sphere();	
 };
