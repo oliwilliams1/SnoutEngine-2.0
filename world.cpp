@@ -241,14 +241,27 @@ void World::CalculateMousePress()
 	glm::vec2 point;
 	point.x = ray.pos.x + t * ray.direction.x;
 	point.y = ray.pos.z + t * ray.direction.z;
-	sphere->position.x = point.x;
-	sphere->position.z = point.y;
 
 	// Get [-0.5, 0.5]
 	glm::vec2 posNDC = point / glm::vec2(worldSize.x, worldSize.y);
 	posNDC += 0.5f;
+
+	// Get [0, 0 -> max_width, max_height]
 	posNDC *= worldSize;
-	std::cout << posNDC.x << ", " << posNDC.y << std::endl;
+
+	// Find index of the vertex its probably closest to
+	// First of all round because yeah
+	posNDC = { round(posNDC.x), round(posNDC.y) };
+
+	if (0 < posNDC.x && posNDC.x < worldSize.x && 0 < posNDC.y && posNDC.y < worldSize.y) { 
+		int index = (((int)posNDC.y - 1) * 6 * worldSize.y);
+		index += (int)posNDC.x * 6;
+		index -= 1;
+
+		sphere->position = vertexPositions[index];
+
+		std::cout << posNDC.x << ", " << posNDC.y << std::endl;
+	}	
 }
 
 // Update the world, if needed

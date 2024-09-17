@@ -50,7 +50,7 @@ void Sphere::CompileShaders()
 
 // Chatgpt makes spheres
 void Sphere::GenerateSphere() {
-    float radius = 0.5f;
+    float radius = 0.1f;
     int sectors = 12;
     int stacks = 12;
 
