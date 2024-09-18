@@ -253,15 +253,46 @@ void World::CalculateMousePress()
 	// First of all round because yeah
 	posNDC = { round(posNDC.x), round(posNDC.y) };
 
-	if (0 < posNDC.x && posNDC.x < worldSize.x && 0 < posNDC.y && posNDC.y < worldSize.y) { 
-		int index = (((int)posNDC.y - 1) * 6 * worldSize.y);
-		index += (int)posNDC.x * 6;
-		index -= 1;
+	if (0 < posNDC.x && posNDC.x < worldSize.x && 0 < posNDC.y && posNDC.y < worldSize.y) {
+
+		std::vector<ClosestDistanceAndIndex> points;
+
+		for (int y = -3; y <= 3; y++) {
+			for (int x = -1; x <= 5; x++) {
+				int index = (((int)posNDC.y + y) * 6 * worldSize.y) + ((int)posNDC.x + x) * 6 - 1;
+
+				if (index >= 0 && index <= vertexPositions.size()) {
+					glm::vec3 unitDir = glm::normalize(ray.direction);
+					glm::vec3 toPoint = vertexPositions[index] - ray.pos;
+					glm::vec3 vertexInQuestion = vertexPositions[index];
+					float t = glm::dot(toPoint, unitDir);
+
+					float distance;
+					if (t < 0) {
+						distance = glm::length(ray.pos - vertexInQuestion);
+					}
+					else {
+						glm::vec3 closestPoint = ray.pos + t * unitDir;
+						distance = glm::length(closestPoint - vertexInQuestion);
+					}
+
+					points.push_back({ distance, index });
+				}
+			}
+		}
+
+		int index = -1;
+		float minDistance = std::numeric_limits<float>::max();
+
+		for (const auto& point : points) {
+			if (point.distance < minDistance) {
+				minDistance = point.distance;
+				index = point.index;
+			}
+		}
 
 		sphere->position = vertexPositions[index];
-
-		std::cout << posNDC.x << ", " << posNDC.y << std::endl;
-	}	
+	}
 }
 
 // Update the world, if needed

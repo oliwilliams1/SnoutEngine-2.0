@@ -15,9 +15,15 @@ struct Ray {
     glm::vec3 pos;
     glm::vec3 direction;
 };
+
 struct AABB {
 	glm::vec3 min;
 	glm::vec3 max;
+};
+
+struct ClosestDistanceAndIndex {
+    float distance;
+	int index;
 };
 
 bool RayIntersectAABB(Ray ray, AABB aabb);
